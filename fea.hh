@@ -30,7 +30,8 @@ private:
 
     cv::Mat image;
     CvSeq *contour;
-    MyMesh mesh;
+//    这个东西销毁有问题，现将其写为局部变量
+//    MyMesh mesh;
 
     double *projectArea;
     double *visSurfaceArea;

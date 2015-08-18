@@ -67,9 +67,10 @@ void Fea::setFeature()
         tmpPpath.append('/').append(pFileName.at(p_tcase));
 
 
-    //    for( t_case =0 ; t_case < NUM ; t_case++)
-            for( t_case =0 ; t_case < 1 ; t_case++)
+        for( t_case =0 ; t_case < NUM ; t_case++)
+//            for( t_case =0 ; t_case < 1 ; t_case++)
             {
+                MyMesh mesh;
                 // read in
                 QString tmpPath = path;
                 tmpPath.append('/').append(fileName.at(t_case));
@@ -110,6 +111,10 @@ void Fea::setFeature()
                 setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
 
                 setAbovePreference(tmpPath, render->p_model);
+
+
+
+                delete render;
 
             }
         print(tmpPpath);

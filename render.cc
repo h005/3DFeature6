@@ -56,11 +56,17 @@ Render::Render(MyMesh &in_mesh,
     }
 
     fclose(stdin);
+    p_img = NULL;
 }
 
 Render::~Render()
 {
-
+    if(p_img)
+        delete p_img;
+    p_vertices.clear();
+    p_isVertexVisible.clear();
+    p_VisibleFaces.clear();
+    p_verticesMvp.clear();
 }
 
 void Render::cleanup()
@@ -206,6 +212,15 @@ void Render::setParameters()
     std::vector<GLuint> indices;
     p_vertices.clear();
     p_isVertexVisible.clear();
+    p_VisibleFaces.clear();
+    p_verticesMvp.clear();
+
+    if(p_img)
+    {
+        delete p_img;
+        p_img = NULL;
+    }
+
     m_helper.getVerticesAndFaces_AddedByZwz(p_vertices,indices);
     makeCurrent();
 
