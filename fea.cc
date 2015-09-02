@@ -13,11 +13,15 @@ Fea::Fea(QString path)
 
     QStringList filters;
     filters << "*.off";
+//    filters << "*.obj";
 
     dir->setNameFilters(filters);
 
     fileName = dir->entryList();
     NUM = fileName.count();
+
+    for(int i=0;i<NUM;i++)
+        std::cout<<fileName.at(i).toStdString()<<std::endl;
 
     QStringList pfilters;
     pfilters << "*.mvp";
@@ -74,7 +78,9 @@ void Fea::setFeature()
                 // read in
                 QString tmpPath = path;
                 tmpPath.append('/').append(fileName.at(t_case));
-                if(!ExternalImporter<MyMesh>::read_mesh(mesh,tmpPath.toStdString().c_str()))
+                ExternalImporter<MyMesh> *exImporter = new ExternalImporter<MyMesh>();
+//                if(!ExternalImporter<MyMesh>::read_mesh(mesh,tmpPath.toStdString().c_str()))
+                if(!exImporter->read_mesh(mesh,tmpPath.toStdString().c_str()))
                 {
                     std::cerr << "Error: Cannot read mesh from " << std::endl;
                     return;
@@ -86,7 +92,7 @@ void Fea::setFeature()
 
                 render->setParameters();
                 //显示图像看效果，可以不用
-//                render->showImage();
+                render->showImage();
 
                 setMat(render->p_img, render->p_width, render->p_height);
 
@@ -107,6 +113,10 @@ void Fea::setFeature()
                 setMeanCurvature(mesh,render->p_isVertexVisible);
 
                 setGaussianCurvature(mesh,render->p_isVertexVisible);
+
+//                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
+
+//                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
 
                 setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
 
@@ -401,12 +411,27 @@ void Fea::setDepthDistribute(GLfloat *zBuffer, int num)
 */
 }
 
-void Fea::setMeanCurvature(MyMesh mesh,
-                           std::vector<bool> &isVertexVisible)
+void Fea::setMeanCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible)
 {
     meanCurvature[t_case] = 0.0;
     MeanCurvature<MyMesh> a(mesh);
     meanCurvature[t_case] = a.getMeanCurvature(isVertexVisible);
+    meanCurvature[t_case] /= projectArea[t_case];
+    std::cout<<"fea meanCurvature "<<meanCurvature[t_case]<<std::endl;
+}
+
+void Fea::setMeanCurvature(MyMesh mesh,
+                           std::vector<bool> &isVertexVisible,
+                           ExternalImporter<MyMesh> *exImporter)
+{
+    std::vector<MyMesh> vecMesh;
+    exImporter->setMeshVector(vecMesh);
+    meanCurvature[t_case] = 0.0;
+    for(int i=0;i<vecMesh.size();i++)
+    {
+        MeanCurvature<MyMesh> a(vecMesh[i]);
+        meanCurvature[t_case] += a.getMeanCurvature(isVertexVisible);
+    }
     meanCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea meanCurvature "<<meanCurvature[t_case]<<std::endl;
 }
@@ -418,6 +443,27 @@ void Fea::setGaussianCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible)
     gaussianCurvature[t_case] = a.getGaussianCurvature(isVertexVisible);
     gaussianCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
+}
+
+void Fea::setGaussianCurvature(MyMesh mesh,
+                               std::vector<bool> &isVertexVisible,
+                               ExternalImporter<MyMesh> *exImporter)
+{
+    std::vector<MyMesh> vecMesh;
+    exImporter->setMeshVector(vecMesh);
+    gaussianCurvature[t_case] = 0.0;
+    for(int i=0;i<vecMesh.size();i++)
+    {
+        GaussCurvature<MyMesh> a(vecMesh[i]);
+        gaussianCurvature[t_case] += a.getGaussianCurvature(isVertexVisible);
+    }
+    gaussianCurvature[t_case] /= projectArea[t_case];
+    std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
+}
+
+void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter)
+{
+
 }
 
 void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible)
@@ -851,6 +897,7 @@ void Fea::print(QString p_path)
     }
 
     fclose(stdout);
+    freopen("CON","w",stdout);
 }
 
 

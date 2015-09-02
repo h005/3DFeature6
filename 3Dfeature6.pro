@@ -23,7 +23,8 @@ SOURCES += \
     render.cc \
     shader.cc \
     trackball.cc \
-    main.cc
+    main.cc \
+    ufface.cpp
 
 OTHER_FILES += shader/*.vert shader/*.frag
 
@@ -84,4 +85,5 @@ HEADERS += \
     meancurvature.hh \
     abstractfeature.hh \
     colormap.hh \
-    curvature.hh
+    curvature.hh \
+    ufface.h
