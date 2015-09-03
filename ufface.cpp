@@ -114,7 +114,17 @@ int* UFface::unionFinal(std::vector<int> &indices,std::vector<int> &cs)
 
 
     if(cateSet.size()==cateSetCommonEdge.size())
+    {
+        cs.clear();
+        std::set<int>::iterator it = cateSet.begin();
+        for(;it!=cateSet.end();it++)
+            cs.push_back(*it);
+
+        printf("unionFinal...cs size %d\n",cs.size());
+        printf("unionFinal...id size %d\n",NUM_FACE);
+
         return id;
+    }
     do{
         setRelation();
         for(int i=1;i<NUM_FACE;i++)
@@ -125,8 +135,15 @@ int* UFface::unionFinal(std::vector<int> &indices,std::vector<int> &cs)
         printf("unionFinal... num of Categories: %d\n",cateSet.size());
         printf("unionFinal... num of CategoriesCommonEdge: %d\n",cateSetCommonEdge.size());
         if(cateSet.size() == cateSetCommonEdge.size())
+        {
+            cs.clear();
+            std::set<int>::iterator it = cateSet.begin();
+            for(;it!=cateSet.end();it++)
+                cs.push_back(*it);
             return id;
-        reArrange();
+        }
+        else
+            reArrange();
 //        getchar();
     }while(cateSet.size() != cateSetCommonEdge.size());
 

@@ -12,8 +12,8 @@ Fea::Fea(QString path)
     this->path = path;
 
     QStringList filters;
-    filters << "*.off";
-//    filters << "*.obj";
+//    filters << "*.off";
+    filters << "*.obj";
 
     dir->setNameFilters(filters);
 
@@ -92,35 +92,35 @@ void Fea::setFeature()
 
                 render->setParameters();
                 //显示图像看效果，可以不用
-                render->showImage();
+//                render->showImage();
 
                 setMat(render->p_img, render->p_width, render->p_height);
 
                 setProjectArea();
 
-                setVisSurfaceArea(render->p_vertices,render->p_VisibleFaces);
+//                setVisSurfaceArea(render->p_vertices,render->p_VisibleFaces);
 
-                setViewpointEntropy(render->p_verticesMvp,render->p_VisibleFaces);
+//                setViewpointEntropy(render->p_verticesMvp,render->p_VisibleFaces);
 
-                setSilhouetteLength();
+//                setSilhouetteLength();
 
-                setSilhouetteCE();
+//                setSilhouetteCE();
 
-                setMaxDepth(render->p_img,render->p_height*render->p_width);
+//                setMaxDepth(render->p_img,render->p_height*render->p_width);
 
-                setDepthDistribute(render->p_img,render->p_width*render->p_height);
+//                setDepthDistribute(render->p_img,render->p_width*render->p_height);
 
-                setMeanCurvature(mesh,render->p_isVertexVisible);
+//                setMeanCurvature(mesh,render->p_isVertexVisible);
 
-                setGaussianCurvature(mesh,render->p_isVertexVisible);
+//                setGaussianCurvature(mesh,render->p_isVertexVisible);
 
-//                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
+                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
 
-//                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
+                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
 
-                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
+//                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
 
-                setAbovePreference(tmpPath, render->p_model);
+//                setAbovePreference(tmpPath, render->p_model);
 
 
 
@@ -425,12 +425,33 @@ void Fea::setMeanCurvature(MyMesh mesh,
                            ExternalImporter<MyMesh> *exImporter)
 {
     std::vector<MyMesh> vecMesh;
-    exImporter->setMeshVector(vecMesh);
+    std::vector<std::vector<int>> indiceArray;
+
+    exImporter->setMeshVector(vecMesh,indiceArray);
+
+    printf("vecMesh....%d\n",vecMesh.size());
+    printf("indiceArray....%d\n",indiceArray.size());
     meanCurvature[t_case] = 0.0;
     for(int i=0;i<vecMesh.size();i++)
     {
+        std::vector<bool> isVerVis;
+//        printf("setMeanCurvature... vertex size %d\n",isVertexVisible.size());
+//        printf("setMeanCurvature... indiceArray[%d] size %d\n",i,indiceArray[i].size());
+        // 这里有一个bug，这样直接push进去是错的，顶点的数量是5641，而索引的数量是33834
+        // 可以写一个set，存在于索引的顶点，按照顺序push进去
+        // fixed...
+        std::set<int> verIndice;
+        for(int j=0;j<indiceArray[i].size();j++)
+            verIndice.insert(indiceArray[i][j]);
+        std::set<int>::iterator it = verIndice.begin();
+//        printf("setMeanCurvature... set size %d\n",verIndice.size());
+        for(;it!=verIndice.end();it++)
+            isVerVis.push_back(isVertexVisible[*it]);
+//        printf("setMeanCurvature... isVerVis done\n");
+        // bug.......
         MeanCurvature<MyMesh> a(vecMesh[i]);
-        meanCurvature[t_case] += a.getMeanCurvature(isVertexVisible);
+        meanCurvature[t_case] += a.getMeanCurvature(isVerVis);
+//        printf("setMeanCurvature... meanCurvature round done\n");
     }
     meanCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea meanCurvature "<<meanCurvature[t_case]<<std::endl;
@@ -450,12 +471,25 @@ void Fea::setGaussianCurvature(MyMesh mesh,
                                ExternalImporter<MyMesh> *exImporter)
 {
     std::vector<MyMesh> vecMesh;
-    exImporter->setMeshVector(vecMesh);
+    std::vector<std::vector<int>> indiceArray;
+    exImporter->setMeshVector(vecMesh,indiceArray);
+
+    printf("gaussian vecMesh....%d\n",vecMesh.size());
+    printf("gaussina indiceArray....%d\n",indiceArray.size());
     gaussianCurvature[t_case] = 0.0;
     for(int i=0;i<vecMesh.size();i++)
     {
+        std::vector<bool> isVerVis;
+
+        std::set<int> verIndice;
+        for(int j=0;j<indiceArray[i].size();j++)
+            verIndice.insert(indiceArray[i][j]);
+        std::set<int>::iterator it = verIndice.begin();
+        for(;it!=verIndice.end();it++)
+            isVerVis.push_back(isVertexVisible[*it]);
+
         GaussCurvature<MyMesh> a(vecMesh[i]);
-        gaussianCurvature[t_case] += a.getGaussianCurvature(isVertexVisible);
+        gaussianCurvature[t_case] += a.getGaussianCurvature(isVerVis);
     }
     gaussianCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
@@ -467,6 +501,57 @@ void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector
 }
 
 void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible)
+{
+    meshSaliency[t_case] = 0.0;
+    double length = getDiagonalLength(vertex);
+    std::vector<double> meanCurvature;
+    double *nearDis = new double[vertex.size()/3];
+    MeanCurvature<MyMesh> a(mesh);
+    double sigma[5] = {0.003*2.0,0.003*3.0,0.003*4.0,0.003*5.0,0.003*6.0};
+    std::vector<double> meshSaliencyMiddle[5];
+    double localMax[5];
+    double gaussWeightedVal1,gaussWeightedVal2;
+    a.setMeanCurvature(meanCurvature);
+    for(int j=0;j<5;j++)
+    {
+        localMax[j] = 0.0;
+        for(int i=0;i<vertex.size();i+=3)
+        {
+            setNearDisMeshSaliency(vertex,i,length,sigma[j],nearDis);
+            gaussWeightedVal1 = getGaussWeightedVal(meanCurvature[i/3],nearDis,vertex.size()/3,sigma[j]);
+            gaussWeightedVal2 = getGaussWeightedVal(meanCurvature[i/3],nearDis,vertex.size()/3,sigma[j]*2.0);
+            meshSaliencyMiddle[j].push_back(abs(gaussWeightedVal1 - gaussWeightedVal2));
+        }
+        double max = meshSaliencyMiddle[j][0];
+        double min = meshSaliencyMiddle[j][0];
+        for(int i=0;i<meshSaliencyMiddle[j].size();i++)
+        {
+//            global max
+            max = max > meshSaliencyMiddle[j][i] ? max : meshSaliencyMiddle[j][i];
+//            used for normalize
+            min = min > meshSaliencyMiddle[j][i] ? meshSaliencyMiddle[j][i] : min;
+//            local max
+            setNearDisMeshSaliency(vertex,i*3,length,sigma[j],nearDis);
+            localMax[j] += getMeshSaliencyLocalMax(nearDis,vertex.size()/3,meshSaliencyMiddle[j]);
+        }
+        localMax[j] /= meshSaliencyMiddle[j].size();
+//        normalize and set Si
+        for(int i=0;i<meshSaliencyMiddle[j].size();i++)
+            meshSaliencyMiddle[j][i] = (meshSaliencyMiddle[j][i] - min)/(max - min) *
+                    (max - localMax[j])*(max - localMax[j]);
+    }
+//    set sum Si
+    for(int i=0;i<meshSaliencyMiddle[0].size();i++)
+        for(int j=1;j<5;j++)
+            meshSaliencyMiddle[0][i] += meshSaliencyMiddle[j][i];
+
+    for(int i=0;i<isVertexVisible.size();i++)
+        if(isVertexVisible[i])
+            meshSaliency[t_case] += meshSaliencyMiddle[0][i];
+    std::cout<<"fea meshSaliency "<<meshSaliency[t_case]<<std::endl;
+}
+
+void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter)
 {
     meshSaliency[t_case] = 0.0;
     double length = getDiagonalLength(vertex);

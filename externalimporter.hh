@@ -59,29 +59,95 @@ public:
         return true;
     }
 
-    void setMeshVector(std::vector<MeshT> &mesh)
+    void setMeshVector(std::vector<MeshT> &mesh,std::vector<std::vector<int>> &indicesArray)
     {
+        // 设置不同mesh的顶点的索引
         setIndiceMesh(indices.size()/3);
-        MeshT tmpMesh;
-        for(int i=0;i<cateSet.size();i++)
-            mesh.push_back(tmpMesh);
-        std::vector<typename MeshT::VertexHandle> vHandle;
-        for(int j=0;j<cateSet.size();j++)
-        for(int i=0;i<vertices.size();i++)
-            vHandle.push_back(mesh[j].add_vertex(vertices[i]));
+
+        indicesArray.clear();
+
+        printf("setMeshVector...indiceMesh size %d\n",indiceMesh.size());
+
+        for(int i=0;i<indiceMesh.size();i++)
+        {
+            std::vector<int> tmpArray;
+            for(int j=0;j<indiceMesh[i].size();j++)
+            {
+                tmpArray.push_back(indices[indiceMesh[i][j]*3]);
+                tmpArray.push_back(indices[indiceMesh[i][j]*3+1]);
+                tmpArray.push_back(indices[indiceMesh[i][j]*3+2]);
+            }
+            indicesArray.push_back(tmpArray);
+        }
+
+
+        printf("setMeshVector....%d\n",indices.size()/3);
+        printf("setMeshVector...cateSet size....%d\n",cateSet.size());
+        printf("setMeshVector...verticeSize...%d\n",vertices.size());
+        printf("setMeshVector...indces Size...%d\n",indices.size());
 
         for(int i=0;i<cateSet.size();i++)
         {
+            MeshT tmpMesh;
+            std::vector<typename MeshT::VertexHandle> vHandle;
             std::vector<MyMesh::VertexHandle> face_vhandles;
+//            printf("setMeshVector...indiceMesh[%d] size %d\n",i,indiceMesh[i].size());
+            std::set<int> indiceSet;
+            for(int j=0;j<indiceMesh[i].size();j++)
+            {
+                indiceSet.insert(indices[indiceMesh[i][j]*3]);
+                indiceSet.insert(indices[indiceMesh[i][j]*3+1]);
+                indiceSet.insert(indices[indiceMesh[i][j]*3+2]);
+            }
+
+            std::set<int>::iterator it = indiceSet.begin();
+            for(;it!=indiceSet.end();it++)
+                vHandle.push_back(tmpMesh.add_vertex(vertices[*it]));
+            it--;
+            int max = *it;
+            int *tmpIndex = new int[max];
+            memset(tmpIndex,-1,sizeof(int)*max);
+            it = indiceSet.begin();
+            int tmpCount = 0;
+            for(;it!=indiceSet.end();it++)
+                tmpIndex[*it] = tmpCount++;
+
             for(int j=0;j<indiceMesh[i].size();j++)
             {
                 face_vhandles.clear();
-                face_vhandles.push_back(vHandle[indiceMesh[i][j]*3]);
-                face_vhandles.push_back(vHandle[indiceMesh[i][j]*3+1]);
-                face_vhandles.push_back(vHandle[indiceMesh[i][j]*3+2]);
-                mesh[i].add_face(face_vhandles);
+                it = indiceSet.find(indices[indiceMesh[i][j]*3]);
+                face_vhandles.push_back(vHandle[tmpIndex[*it]]);
+                it = indiceSet.find(indices[indiceMesh[i][j]*3+1]);
+                face_vhandles.push_back(vHandle[tmpIndex[*it]]);
+                it = indiceSet.find(indices[indiceMesh[i][j]*3+2]);
+                face_vhandles.push_back(vHandle[tmpIndex[*it]]);
+                tmpMesh.add_face(face_vhandles);
             }
+
+
+/*
+            for(int j=0;j<indiceMesh[i].size();j++)
+            {
+//                printf("setMeshVector....addVertex...indiceMesh %d\n",indiceMesh[i][j]*3);
+//                printf("setMeshVector....addVertex...indices %d\n",indices[indiceMesh[i][j]*3]);
+
+                vHandle.push_back(tmpMesh.add_vertex(vertices[indices[indiceMesh[i][j]*3]]));
+                vHandle.push_back(tmpMesh.add_vertex(vertices[indices[indiceMesh[i][j]*3+1]]));
+                vHandle.push_back(tmpMesh.add_vertex(vertices[indices[indiceMesh[i][j]*3+2]]));
+
+
+                face_vhandles.clear();
+                face_vhandles.push_back(vHandle[j*3]);
+                face_vhandles.push_back(vHandle[j*3+1]);
+                face_vhandles.push_back(vHandle[j*3+2]);
+                tmpMesh.add_face(face_vhandles);
+            }
+*/
+            mesh.push_back(tmpMesh);
         }
+
+        printf("setMeshVector....done\n");
+
     }
 
 private:
@@ -234,16 +300,41 @@ private:
 
     void setIndiceMesh(int length)
     {
+        indiceMesh.clear();
         // initial indiceMesh
         int len = cateSet.size();
         for(int i=0;i<len;i++)
             indiceMesh.push_back(std::vector<int>());
 
-        for(int i=0;i<cateSet.size();i++)
+//        printf("setIndiceMesh...length %d\n",length);
+
+        for(int i=0;i<len;i++)
+        {
+            for(int j=0;j<length;j++)
+            {
+                if(find(id,j) ==  cateSet[i])
+                    indiceMesh[i].push_back(j);
+            }
+        }
+
+
+        /*
+        for(int i=0;i<len;i++)
             for(int j=0;j<length;j++)
                 if(id[j]==cateSet[i])
                     indiceMesh[i].push_back(j);
+        */
 
+    }
+
+    int find(int* id,int p)
+    {
+        while(p != id[p])
+        {
+            id[p] = id[id[p]];
+            p = id[p];
+        }
+        return p;
     }
 
 

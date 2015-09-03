@@ -82,6 +82,8 @@ private:
 
     void setMeshSaliency(MyMesh mesh,std::vector<GLfloat> &vertex,std::vector<bool> isVertexVisible);
 
+    void setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter);
+
     void setAbovePreference(double theta);
 
     void setAbovePreference(QString filename,glm::mat4 &modelView);
