@@ -114,11 +114,13 @@ void Fea::setFeature()
 
 //                setGaussianCurvature(mesh,render->p_isVertexVisible);
 
-                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
+//                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
 
-                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
+//                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
 
 //                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
+
+                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible, exImporter);
 
 //                setAbovePreference(tmpPath, render->p_model);
 
@@ -127,7 +129,7 @@ void Fea::setFeature()
                 delete render;
 
             }
-        print(tmpPpath);
+//        print(tmpPpath);
     }
 
 
@@ -495,11 +497,6 @@ void Fea::setGaussianCurvature(MyMesh mesh,
     std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
 }
 
-void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter)
-{
-
-}
-
 void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible)
 {
     meshSaliency[t_case] = 0.0;
@@ -553,16 +550,41 @@ void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector
 
 void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter)
 {
+
+
     meshSaliency[t_case] = 0.0;
     double length = getDiagonalLength(vertex);
-    std::vector<double> meanCurvature;
+//    std::vector<double> meanCurvature;
+    double *meanCurvature = new double[vertex.size()/3];
+    memset(meanCurvature,0,sizeof(double)*vertex.size()/3);
     double *nearDis = new double[vertex.size()/3];
-    MeanCurvature<MyMesh> a(mesh);
+
     double sigma[5] = {0.003*2.0,0.003*3.0,0.003*4.0,0.003*5.0,0.003*6.0};
     std::vector<double> meshSaliencyMiddle[5];
     double localMax[5];
     double gaussWeightedVal1,gaussWeightedVal2;
-    a.setMeanCurvature(meanCurvature);
+
+    std::vector<MyMesh> vecMesh;
+    std::vector<std::vector<int>> indiceArray;
+    exImporter->setMeshVector(vecMesh,indiceArray);
+
+    for(int i=0;i<vecMesh.size();i++)
+    {
+        std::set<int> verIndice;
+        std::vector<int> verVec;
+        for(int j=0;j<indiceArray[i].size();j++)
+            verIndice.insert(indiceArray[i][j]);
+        std::set<int>::iterator it = verIndice.begin();
+        for(;it!=verIndice.end();it++)
+            verVec.push_back(*it);
+
+        MeanCurvature<MyMesh> a(vecMesh[i]);
+        a.setMeanCurvature(meanCurvature,verVec);
+
+    }
+
+    printf("set Mesh Saliency.... exImporter done\n");
+
     for(int j=0;j<5;j++)
     {
         localMax[j] = 0.0;
@@ -590,7 +612,10 @@ void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector
         for(int i=0;i<meshSaliencyMiddle[j].size();i++)
             meshSaliencyMiddle[j][i] = (meshSaliencyMiddle[j][i] - min)/(max - min) *
                     (max - localMax[j])*(max - localMax[j]);
+
+        printf("set MeshSaliency .... %d\n",j);
     }
+
 //    set sum Si
     for(int i=0;i<meshSaliencyMiddle[0].size();i++)
         for(int j=1;j<5;j++)

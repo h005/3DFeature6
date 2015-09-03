@@ -90,6 +90,14 @@ public:
             meanCurvature.push_back(m_mesh.property(m_vPropHandle, *v_it));
     }
 
+    void setMeanCurvature(double* meanCurvature,std::vector<int> verVec)
+    {
+        int i = 0;
+        typename MeshT::VertexIter v_it, v_end(m_mesh.vertices_end());
+        for (v_it = m_mesh.vertices_begin(); v_it != v_end; v_it++)
+            meanCurvature[verVec[i++]] = m_mesh.property(m_vPropHandle, *v_it);
+    }
+
     double compute(const glm::mat3 &K, const glm::mat3 &R, const glm::vec3 &t)
     {
         return 1;
