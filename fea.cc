@@ -13,7 +13,8 @@ Fea::Fea(QString path)
 
     QStringList filters;
 //    filters << "*.off";
-    filters << "*.obj";
+//    filters << "*.obj";
+    filters << "*.dae";
 
     dir->setNameFilters(filters);
 
@@ -92,7 +93,7 @@ void Fea::setFeature()
 
                 render->setParameters();
                 //显示图像看效果，可以不用
-//                render->showImage();
+                render->showImage();
 
                 setMat(render->p_img, render->p_width, render->p_height);
 
@@ -114,17 +115,15 @@ void Fea::setFeature()
 
 //                setGaussianCurvature(mesh,render->p_isVertexVisible);
 
-//                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
+                setMeanCurvature(mesh,render->p_isVertexVisible,exImporter);
 
 //                setGaussianCurvature(mesh,render->p_isVertexVisible,exImporter);
 
 //                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
 
-                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible, exImporter);
+//                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible, exImporter);
 
 //                setAbovePreference(tmpPath, render->p_model);
-
-
 
                 delete render;
 
