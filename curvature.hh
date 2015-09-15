@@ -218,8 +218,11 @@ void discrete_mean_curv_op( const MeshT&                        _m,
 
     }
   }
-
-  _n /= (float)(2.0*_area);
+  Q_ASSERT(!std::isnan(_n.norm()));
+  Q_ASSERT(!std::isnan(_area));
+  if (_area > 0)
+    _n /= (float)(2.0*_area);
+  Q_ASSERT(!std::isnan(_n.norm()));
 }
 
 template <typename T>
