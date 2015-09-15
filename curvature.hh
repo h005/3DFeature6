@@ -194,7 +194,9 @@ void discrete_mean_curv_op( const MeshT&                        _m,
       }
     }
 
-    _n += ((p0-p1)*cotw);
+    typename VectorT _tmp = ((p0-p1)*cotw);
+    if (!std::isnan(_tmp.norm()))
+        _n += _tmp;
 
     // error handling
     if(_area < 0) std::cerr << "error: triangle area < 0\n";
