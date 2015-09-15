@@ -72,13 +72,13 @@ private:
 
     void setMeanCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible);
 
-    void setMeanCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible, ExternalImporter<MyMesh> *exImporter);
+    void setMeanCurvature(int t_case, std::vector<bool> &isVertexVisible, ExternalImporter<MyMesh> *exImporter);
 
     void setGaussianCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible);
 
-    void setGaussianCurvature(MyMesh mesh,std::vector<bool> &isVertexVisible, ExternalImporter<MyMesh> *exImporter);
+    void setGaussianCurvature(int t_case,std::vector<bool> &isVertexVisible, ExternalImporter<MyMesh> *exImporter);
 
-    void setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter);
+    void setMeshSaliency(int t_case, std::vector<GLfloat> &vertex, std::vector<bool> isVertexVisible, ExternalImporter<MyMesh> *exImporter);
 
     void setMeshSaliency(MyMesh mesh,std::vector<GLfloat> &vertex,std::vector<bool> isVertexVisible);
 

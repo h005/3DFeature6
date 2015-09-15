@@ -11,6 +11,7 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 #include "ufface.h"
+#include <QString>
 
 template <typename MeshT>
 class ExternalImporter
@@ -41,11 +42,18 @@ public:
         std::cout<<"union...done"<<std::endl;
         buildMesh_h005(vertices,indices,mesh);
 
+        std::cout<<"Assimp Importer: "<<count<<" Meshes Loaded."<<std::endl;
+        return true;
+    }
+
+    int outputMesh(MeshT &mesh,QString fileName)
+    {
+        fileName.append(QString(".off"));
         try
         {
-          if ( !OpenMesh::IO::write_mesh(mesh, "output.off") )
+          if ( !OpenMesh::IO::write_mesh(mesh, fileName.toStdString().c_str()) )
           {
-            std::cerr << "Cannot write mesh to file 'output.off'" << std::endl;
+            std::cerr << "Cannot write mesh to file " << fileName.toStdString()<< std::endl;
             return 1;
           }
         }
@@ -54,9 +62,6 @@ public:
           std::cerr << x.what() << std::endl;
           return 1;
         }
-
-        std::cout<<"Assimp Importer: "<<count<<" Meshes Loaded."<<std::endl;
-        return true;
     }
 
     void setMeshVector(std::vector<MeshT> &mesh,std::vector<std::vector<int>> &indicesArray)
@@ -64,6 +69,9 @@ public:
         // 设置不同mesh的顶点的索引
         setIndiceMesh(indices.size()/3);
 
+        // indiceMesh 存储各个mesh中face的indices
+        // indicesArray 存储各个mesh中vertex的indices
+        // 其中一个face对应于三个vertex，仅仅是个扩充而已
         indicesArray.clear();
 
         printf("setMeshVector...indiceMesh size %d\n",indiceMesh.size());
@@ -86,6 +94,13 @@ public:
         printf("setMeshVector...verticeSize...%d\n",vertices.size());
         printf("setMeshVector...indces Size...%d\n",indices.size());
 
+        /*
+         * 对每个mesh将vertex，push进去，然后将face放进去
+         * indiceSet 存储着各个vertex的索引，存储着哪些vertex出现过，需要push进mesh中
+         * tmpMesh 当前构建的mesh
+         * vHandle push进tmpMesh的vHandle
+         * tmpIndex[*it] 值为*it的vertex索引在vHandle出现在第几次
+        */
         for(int i=0;i<cateSet.size();i++)
         {
             MeshT tmpMesh;
@@ -339,7 +354,7 @@ private:
 
 
 
-    // 可能会有很多个mesh，存储每个mesh的indices
+    // 可能会有很多个mesh，存储每个mesh中face的indices
     std::vector<std::vector<int>> indiceMesh;
     // 并查集合并之后的结果
     int *id;
