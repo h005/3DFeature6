@@ -26,7 +26,10 @@ public:
                 OpenMesh::VectorT<float,3> n;
                 double area;
                 curvature::discrete_mean_curv_op<MeshT>(m_mesh, *v_it, n, area);
+
+                // 每个顶点的平均曲率非负，因为其值为向量的长度
                 m_mesh.property(valuePerArea, *v_it) = n.norm() / 2.0;
+                Q_ASSERT(!std::isnan(m_mesh.property(valuePerArea, *v_it)));
                 m_mesh.property(vertexBoundingArea, *v_it) = area;
             }
 
@@ -39,10 +42,13 @@ public:
                 if (curvatureMax < m_mesh.property(valuePerArea, *v_it))
                     curvatureMax = m_mesh.property(valuePerArea, *v_it);
 
+            // 如果一个mesh只有一个三角面，那么这三个顶点就都是边界点，从而每个顶点上的平均曲率都为0
+            // 所以除之前看看curvatureMax是否为0
             for (v_it = m_mesh.vertices_begin(); v_it != v_end; v_it++) {
-                m_mesh.property(m_vPropHandle, *v_it) =
-                        m_mesh.property(valuePerArea, *v_it) / curvatureMax;
-
+                if (curvatureMax > 0)
+                    m_mesh.property(m_vPropHandle, *v_it) = m_mesh.property(valuePerArea, *v_it) / curvatureMax;
+                else
+                    m_mesh.property(m_vPropHandle, *v_it) = m_mesh.property(valuePerArea, *v_it);
             }
 
             m_mesh.remove_property(valuePerArea);
@@ -78,8 +84,10 @@ public:
         int index = 0;
         typename MeshT::VertexIter v_it, v_end(m_mesh.vertices_end());
         for (v_it = m_mesh.vertices_begin(); v_it != v_end; v_it++,index++)
-            if(isVertexVisible[index])
+            if(isVertexVisible[index]) {
+                Q_ASSERT(!std::isnan(m_mesh.property(m_vPropHandle, *v_it)));
                 res += m_mesh.property(m_vPropHandle, *v_it);
+            }
         return res;
     }
 
