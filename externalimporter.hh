@@ -66,7 +66,7 @@ public:
 
     void setMeshVector(std::vector<MeshT> &mesh,std::vector<std::vector<int>> &indicesArray)
     {
-        // 设置不同mesh的顶点的索引
+        // 设置不同mesh的面的索引
         setIndiceMesh(indices.size()/3);
 
         // indiceMesh 存储各个mesh中face的indices
@@ -86,6 +86,17 @@ public:
                 tmpArray.push_back(indices[indiceMesh[i][j]*3+2]);
             }
             indicesArray.push_back(tmpArray);
+            // for debug
+            if(i==136)
+            {
+//                printf("setMeshVector...136 indices %d\n",indiceMesh[i].size());
+                for(int j=0;j<indiceMesh[i].size();j++)
+                {
+                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3]);
+                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3+1]);
+                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3+2]);
+                }
+            }
         }
 
 
@@ -116,6 +127,16 @@ public:
             }
 
             std::set<int>::iterator it = indiceSet.begin();
+
+            // for debug
+            if(i == 136)
+            {
+                for(;it!=indiceSet.end();it++)
+                    printf("setMeshVector...vertex 136 indice %d\n",*it);
+                it = indiceSet.begin();
+            }
+
+
             for(;it!=indiceSet.end();it++)
                 vHandle.push_back(tmpMesh.add_vertex(vertices[*it]));
             it--;

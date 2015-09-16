@@ -93,7 +93,7 @@ void Fea::setFeature()
 
                 render->setParameters();
                 //显示图像看效果，可以不用
-                render->showImage();
+//                render->showImage();
 
                 setMat(render->p_img, render->p_width, render->p_height);
 
@@ -119,7 +119,7 @@ void Fea::setFeature()
 
 //                setGaussianCurvature(mesh,render->p_isVertexVisible);
 
-              setMeanCurvature(t_case,render->p_isVertexVisible,exImporter);
+                setMeanCurvature(t_case,render->p_isVertexVisible,exImporter);
 
 //                setMeshSaliency(t_case, render->p_vertices, render->p_isVertexVisible, exImporter);
 
@@ -436,15 +436,19 @@ void Fea::setMeanCurvature(int t_case,
     for(int i=0;i<vecMesh.size();i++)
     {
         // 查看在哪个mesh上面crush掉了
-        std::cout<<"setMeahCurvature.... "<<i<<std::endl;
+//        std::cout<<"setMeahCurvature.... "<<i<<std::endl;
         // for debug 第136个mesh出错了，输出这个mesh的信息
-        if(i==136)
-        {
-            // 输入文件名即可，outputMesh函数会加上.off后缀名
-            QString tmpPath = fileName.at(t_case);
-            tmpPath.append(QString::number(i));
-            exImporter->outputMesh(vecMesh[i],tmpPath);
-        }
+
+//        if(i==119)
+//        {
+//            // 输入文件名即可，outputMesh函数会加上.off后缀名
+//            QString tmpPath = this->path;
+//            tmpPath.append('/');
+//            tmpPath.append(fileName.at(t_case));
+//            tmpPath.append(QString::number(i));
+//            exImporter->outputMesh(vecMesh[i],tmpPath);
+//        }
+
         std::vector<bool> isVerVis;
 //        printf("setMeanCurvature... vertex size %d\n",isVertexVisible.size());
 //        printf("setMeanCurvature... indiceArray[%d] size %d\n",i,indiceArray[i].size());
@@ -454,6 +458,16 @@ void Fea::setMeanCurvature(int t_case,
         std::set<int> verIndice;
         for(int j=0;j<indiceArray[i].size();j++)
             verIndice.insert(indiceArray[i][j]);
+
+        // for debug
+//        if(i==136)
+//        {
+//            printf("meanCurvature...136 %d\n",indiceArray[i].size());
+//        for(int j=0;j<indiceArray[i].size();j++)
+//            printf("meanCurvature...136 verIndice %d\n",indiceArray[i][j]);
+//        }
+
+
         std::set<int>::iterator it = verIndice.begin();
 //        printf("setMeanCurvature... set size %d\n",verIndice.size());
         for(;it!=verIndice.end();it++)
@@ -464,7 +478,8 @@ void Fea::setMeanCurvature(int t_case,
         meanCurvature[t_case] += a.getMeanCurvature(isVerVis);
 //        printf("setMeanCurvature... meanCurvature round done\n");
     }
-    meanCurvature[t_case] /= projectArea[t_case];
+    if(projectArea[t_case])
+        meanCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea meanCurvature "<<meanCurvature[t_case]<<std::endl;
 }
 

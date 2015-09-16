@@ -45,10 +45,12 @@ public:
             // 如果一个mesh只有一个三角面，那么这三个顶点就都是边界点，从而每个顶点上的平均曲率都为0
             // 所以除之前看看curvatureMax是否为0
             for (v_it = m_mesh.vertices_begin(); v_it != v_end; v_it++) {
+                Q_ASSERT(!std::isnan(m_mesh.property(m_vPropHandle, *v_it)));
                 if (curvatureMax > 0)
                     m_mesh.property(m_vPropHandle, *v_it) = m_mesh.property(valuePerArea, *v_it) / curvatureMax;
                 else
                     m_mesh.property(m_vPropHandle, *v_it) = m_mesh.property(valuePerArea, *v_it);
+                Q_ASSERT(!std::isnan(m_mesh.property(m_vPropHandle, *v_it)));
             }
 
             m_mesh.remove_property(valuePerArea);

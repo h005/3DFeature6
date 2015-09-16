@@ -140,6 +140,9 @@ int* UFface::unionFinal(std::vector<int> &indices,std::vector<int> &cs)
             std::set<int>::iterator it = cateSet.begin();
             for(;it!=cateSet.end();it++)
                 cs.push_back(*it);
+            indices.clear();
+            for(int i=0;i<NUM_FACE*3;i++)
+                indices.push_back(arrayFace[i/3][i%3]);
             return id;
         }
         else

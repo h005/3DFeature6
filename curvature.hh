@@ -152,10 +152,10 @@ void discrete_mean_curv_op( const MeshT&                        _m,
       cotw += (REALT(1.0))/tan(beta);
 
 #ifdef WIN32
-    if ( OpenMesh::is_zero(cotw) )
+    if ( OpenMesh::is_zero(cotw) || std::isinf(cotw) )
         continue;
 #else
-    if ( OpenMesh::is_zero(cotw) || std::isinf(cotw) )
+    if ( OpenMesh::is_zero(cotw) )
         continue;
 #endif
 
