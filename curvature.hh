@@ -127,11 +127,13 @@ void discrete_mean_curv_op( const MeshT&                        _m,
 
   typename MeshT::ConstVertexOHalfedgeIter voh_it = _m.cvoh_iter(_vh);
 
+//  printf("for debug... 1\n");
    if ( ! voh_it->is_valid() )
      return;
 
   for(; voh_it.is_valid(); ++voh_it)
   {
+//      printf("for debug... 2\n");
     if ( _m.is_boundary( _m.edge_handle( *voh_it ) ) )
       continue;
 

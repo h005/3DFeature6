@@ -207,7 +207,7 @@ void Render::showImage()
 
 }
 
-void Render::setParameters()
+void Render::setParameters(ExternalImporter<MyMesh> *exImporter)
 {
     std::vector<GLuint> indices;
     p_vertices.clear();
@@ -294,6 +294,7 @@ void Render::setParameters()
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
     doneCurrent();
+    exImporter->setMeshVector(p_vecMesh,p_indiceArray);
 }
 
 void Render::clear()

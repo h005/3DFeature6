@@ -10,6 +10,7 @@
 #include <QOpenGLBuffer>
 #include <glm/glm.hpp>
 #include "common.hh"
+#include "externalimporter.hh"
 #include <QString>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
@@ -22,7 +23,7 @@ class Render : public QOpenGLWidget,protected QOpenGLFunctions
 
 public:
     Render(MyMesh &in_mesh, QString fileName, QWidget *parent = 0);
-    void setParameters();
+    void setParameters(ExternalImporter<MyMesh> *exImporter);
 
     void clear();
 
@@ -53,6 +54,8 @@ public:
     std::vector<GLuint> p_VisibleFaces;
     std::vector<GLfloat> p_verticesMvp;
     glm::mat4 p_model;
+    std::vector<MyMesh> p_vecMesh;
+    std::vector<std::vector<int>> p_indiceArray;
 
 protected:
     glm::mat4 getModelViewMatrix();

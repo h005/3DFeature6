@@ -91,7 +91,7 @@ void Fea::setFeature()
                 //必须调用该函数
                 render->show();
 
-                render->setParameters();
+                render->setParameters(exImporter);
                 //显示图像看效果，可以不用
 //                render->showImage();
 
@@ -113,15 +113,15 @@ void Fea::setFeature()
 
 //                setMeanCurvature(mesh,render->p_isVertexVisible);
 
-//                setGaussianCurvature(t_case,render->p_isVertexVisible,exImporter);
+//                setGaussianCurvature(mesh,render->p_isVertexVisible);
 
 //                setMeshSaliency(mesh, render->p_vertices, render->p_isVertexVisible);
 
-//                setGaussianCurvature(mesh,render->p_isVertexVisible);
+                setMeanCurvature(t_case,render->p_isVertexVisible,render->p_vecMesh,render->p_indiceArray);
 
-                setMeanCurvature(t_case,render->p_isVertexVisible,exImporter);
+                setGaussianCurvature(t_case,render->p_isVertexVisible,render->p_vecMesh,render->p_indiceArray);
 
-//                setMeshSaliency(t_case, render->p_vertices, render->p_isVertexVisible, exImporter);
+                setMeshSaliency(t_case, render->p_vertices, render->p_isVertexVisible, render->p_vecMesh,render->p_indiceArray);
 
 //                setAbovePreference(tmpPath, render->p_model);
 
@@ -423,23 +423,19 @@ void Fea::setMeanCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible)
 
 void Fea::setMeanCurvature(int t_case,
                            std::vector<bool> &isVertexVisible,
-                           ExternalImporter<MyMesh> *exImporter)
+                           std::vector<MyMesh> &vecMesh,
+                           std::vector<std::vector<int>> &indiceArray)
 {
-    std::vector<MyMesh> vecMesh;
-    std::vector<std::vector<int>> indiceArray;
-
-    exImporter->setMeshVector(vecMesh,indiceArray);
-
     printf("vecMesh....%d\n",vecMesh.size());
     printf("indiceArray....%d\n",indiceArray.size());
     meanCurvature[t_case] = 0.0;
     for(int i=0;i<vecMesh.size();i++)
     {
-        // 查看在哪个mesh上面crush掉了
+        // 查看在哪个mesh上面crash掉了
 //        std::cout<<"setMeahCurvature.... "<<i<<std::endl;
         // for debug 第136个mesh出错了，输出这个mesh的信息
 
-//        if(i==119)
+//        if(i==0)
 //        {
 //            // 输入文件名即可，outputMesh函数会加上.off后缀名
 //            QString tmpPath = this->path;
@@ -459,25 +455,13 @@ void Fea::setMeanCurvature(int t_case,
         for(int j=0;j<indiceArray[i].size();j++)
             verIndice.insert(indiceArray[i][j]);
 
-        // for debug
-//        if(i==136)
-//        {
-//            printf("meanCurvature...136 %d\n",indiceArray[i].size());
-//        for(int j=0;j<indiceArray[i].size();j++)
-//            printf("meanCurvature...136 verIndice %d\n",indiceArray[i][j]);
-//        }
-
-
         std::set<int>::iterator it = verIndice.begin();
-//        printf("setMeanCurvature... set size %d\n",verIndice.size());
         for(;it!=verIndice.end();it++)
             isVerVis.push_back(isVertexVisible[*it]);
-//        printf("setMeanCurvature... isVerVis done\n");
-        // bug.......
         MeanCurvature<MyMesh> a(vecMesh[i]);
         meanCurvature[t_case] += a.getMeanCurvature(isVerVis);
-//        printf("setMeanCurvature... meanCurvature round done\n");
     }
+
     if(projectArea[t_case])
         meanCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea meanCurvature "<<meanCurvature[t_case]<<std::endl;
@@ -488,18 +472,16 @@ void Fea::setGaussianCurvature(MyMesh mesh, std::vector<bool> &isVertexVisible)
     gaussianCurvature[t_case] = 0.0;
     GaussCurvature<MyMesh> a(mesh);
     gaussianCurvature[t_case] = a.getGaussianCurvature(isVertexVisible);
-    gaussianCurvature[t_case] /= projectArea[t_case];
+    if(projectArea[t_case])
+        gaussianCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
 }
 
 void Fea::setGaussianCurvature(int t_case, // for debug, used for output the mesh
                                std::vector<bool> &isVertexVisible,
-                               ExternalImporter<MyMesh> *exImporter)
+                               std::vector<MyMesh> &vecMesh,
+                               std::vector<std::vector<int>> &indiceArray)
 {
-    std::vector<MyMesh> vecMesh;
-    std::vector<std::vector<int>> indiceArray;
-    exImporter->setMeshVector(vecMesh,indiceArray);
-
     printf("gaussian vecMesh....%d\n",vecMesh.size());
     printf("gaussina indiceArray....%d\n",indiceArray.size());
     gaussianCurvature[t_case] = 0.0;
@@ -517,6 +499,7 @@ void Fea::setGaussianCurvature(int t_case, // for debug, used for output the mes
         GaussCurvature<MyMesh> a(vecMesh[i]);
         gaussianCurvature[t_case] += a.getGaussianCurvature(isVerVis);
     }
+    if(projectArea[t_case])
     gaussianCurvature[t_case] /= projectArea[t_case];
     std::cout<<"fea gaussianCurvature "<<gaussianCurvature[t_case]<<std::endl;
 }
@@ -569,13 +552,15 @@ void Fea::setMeshSaliency(MyMesh mesh, std::vector<GLfloat> &vertex, std::vector
     for(int i=0;i<isVertexVisible.size();i++)
         if(isVertexVisible[i])
             meshSaliency[t_case] += meshSaliencyMiddle[0][i];
-    std::cout<<"fea meshSaliency "<<meshSaliency[t_case]<<std::endl;
+//    std::cout<<"fea meshSaliency ";
+    printf("fea meshSaliency %e\n",meshSaliency[t_case]);
 }
 
 void Fea::setMeshSaliency(int t_case,// for debug can be used to output the mesh
                           std::vector<GLfloat> &vertex,
                           std::vector<bool> isVertexVisible,
-                          ExternalImporter<MyMesh> *exImporter)
+                          std::vector<MyMesh> &vecMesh,
+                          std::vector<std::vector<int>> &indiceArray)
 {
 
 
@@ -590,10 +575,6 @@ void Fea::setMeshSaliency(int t_case,// for debug can be used to output the mesh
     std::vector<double> meshSaliencyMiddle[5];
     double localMax[5];
     double gaussWeightedVal1,gaussWeightedVal2;
-
-    std::vector<MyMesh> vecMesh;
-    std::vector<std::vector<int>> indiceArray;
-    exImporter->setMeshVector(vecMesh,indiceArray);
 
     for(int i=0;i<vecMesh.size();i++)
     {
@@ -652,6 +633,7 @@ void Fea::setMeshSaliency(int t_case,// for debug can be used to output the mesh
         if(isVertexVisible[i])
             meshSaliency[t_case] += meshSaliencyMiddle[0][i];
     std::cout<<"fea meshSaliency "<<meshSaliency[t_case]<<std::endl;
+
 }
 
 void Fea::setAbovePreference(double theta)

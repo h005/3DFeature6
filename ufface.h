@@ -13,9 +13,14 @@ public:
     ~UFface();
 
     int* unionFinal(std::vector<int> &indices,std::vector<int> &cs);
+    void free();
 
 
 private:
+
+    void shrink(std::vector<int> &indices);
+    bool isSameFace(std::vector<int> &indices,int i1,int i2);
+
     int find(int p);
     void unionFace(int p,int q);
 
@@ -26,6 +31,9 @@ private:
     void setCateCommonEdgeSet();
 
     void reArrange();
+
+    char getRealtion(int i,int j);
+    void setRelation(int i,int j,char val);
 
     void setRelation();
     void checkIn(int i,int j);
@@ -41,7 +49,7 @@ private:
     int *id;
     int *idCE;
     int NUM_FACE;
-    char **relationGraph;
+    char *relationGraph;
 };
 
 #endif // UFFACE_H

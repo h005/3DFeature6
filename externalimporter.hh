@@ -33,14 +33,24 @@ public:
             return false;
 
         int count = 0;
+
 //        recursive_create(scene,scene->mRootNode,glm::mat4(),mesh,count);
 
         getPointFace_h005(scene,scene->mRootNode,glm::mat4(),vertices,indices,count);
 
+        std::cout<<"read in done"<<std::endl;
+
+
         UFface *ufface = new UFface(indices);
+
         id = ufface->unionFinal(indices,cateSet);
-        std::cout<<"union...done"<<std::endl;
+        std::cout<<"indices size "<<indices.size()<<std::endl;
+        ufface->free();
+        std::cout<<"union...done cateSet size "<<cateSet.size()<<std::endl;
         buildMesh_h005(vertices,indices,mesh);
+//        outputMesh(mesh,"E:/big-ben-and-king-kong/notredame_shrink");
+        // debug for notredame
+//        outputMesh(mesh,"E:/big-ben-and-king-kong/notredame");
 
         std::cout<<"Assimp Importer: "<<count<<" Meshes Loaded."<<std::endl;
         return true;
@@ -86,17 +96,6 @@ public:
                 tmpArray.push_back(indices[indiceMesh[i][j]*3+2]);
             }
             indicesArray.push_back(tmpArray);
-            // for debug
-            if(i==136)
-            {
-//                printf("setMeshVector...136 indices %d\n",indiceMesh[i].size());
-                for(int j=0;j<indiceMesh[i].size();j++)
-                {
-                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3]);
-                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3+1]);
-                    printf("setMeshVecotr...136 indices %d\n",indices[indiceMesh[i][j]*3+2]);
-                }
-            }
         }
 
 
@@ -127,15 +126,6 @@ public:
             }
 
             std::set<int>::iterator it = indiceSet.begin();
-
-            // for debug
-            if(i == 136)
-            {
-                for(;it!=indiceSet.end();it++)
-                    printf("setMeshVector...vertex 136 indice %d\n",*it);
-                it = indiceSet.begin();
-            }
-
 
             for(;it!=indiceSet.end();it++)
                 vHandle.push_back(tmpMesh.add_vertex(vertices[*it]));
@@ -233,7 +223,7 @@ private:
                         openMesh.add_face(fHandle);
                     }
                     else
-                        std::cout<<"mesh face...i"<<std::endl;
+                        std::cout<<"mesh face..."<< i <<std::endl;
                 }
             }
         }
@@ -250,6 +240,8 @@ private:
                         std::vector<int> &indices,
                         MeshT &mesh)
     {
+        printf("buildMesh_h005 vertices size %d\n",vertices.size());
+        printf("buildMesh_h005 indices size %d\n",indices.size());
         std::vector<typename MeshT::VertexHandle> vHandle;
         for(int i=0;i<vertices.size();i++)
             vHandle.push_back(mesh.add_vertex(vertices[i]));
@@ -257,10 +249,12 @@ private:
         std::cout<<"buildMesh_h005...indices size "<<indices.size()<<std::endl;
         for(int i=0;i<indices.size();i+=3)
         {
+//            printf("buildMesh_h005 face %d %d %d\n",indices[i],indices[i+1],indices[i+2]);
             face_vhandles.clear();
             face_vhandles.push_back(vHandle[indices[i]]);
             face_vhandles.push_back(vHandle[indices[i+1]]);
             face_vhandles.push_back(vHandle[indices[i+2]]);
+//            printf("buildMesh_h005 ... %d %d %d %d\n",i,indices[i],indices[i+1],indices[i+2]);
             mesh.add_face(face_vhandles);
         }
     }
@@ -336,6 +330,13 @@ private:
 
     void setIndiceMesh(int length)
     {
+        // release
+        for(int i=0;i<indiceMesh.size();i++)
+            for(int j=0;j<indiceMesh[i].size();j++)
+                std::vector<int>().swap(indiceMesh[i]);
+        for(int i=0;i<indiceMesh.size();i++)
+            std::vector<std::vector<int>>().swap(indiceMesh);
+
         indiceMesh.clear();
         // initial indiceMesh
         int len = cateSet.size();

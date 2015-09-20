@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     QString path = "E:/big-ben-and-king-kong";
 
 //    printf("start........\n");
+//    freopen("E:/big-ben-and-king-kong/info.txt","w",stdout);
 
     Fea *fea = new Fea(path);
 

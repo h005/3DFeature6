@@ -22,10 +22,17 @@ public:
             m_mesh.add_property(vertexBoundingArea);
 
             typename MeshT::VertexIter v_it, v_end(m_mesh.vertices_end());
+            int time = 0;
             for (v_it = m_mesh.vertices_begin(); v_it != v_end; v_it++) {
                 OpenMesh::VectorT<float,3> n;
                 double area;
+                if(time == 4)
+                {
+                    printf("for debug\n");
+                }
                 curvature::discrete_mean_curv_op<MeshT>(m_mesh, *v_it, n, area);
+
+//                printf("meanCurvature....ok...%d\n",time++);
 
                 // 每个顶点的平均曲率非负，因为其值为向量的长度
                 m_mesh.property(valuePerArea, *v_it) = n.norm() / 2.0;
